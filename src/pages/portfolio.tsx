@@ -4,12 +4,13 @@ import './portfolio.css'
 
 import Layout from "../components/layout";
 import SEO from "../components/seo";
+import portfolioImage from "../components/portfolioImage";
 
 const Portfolio = () => {
 
   const data = useStaticQuery(graphql`
     query {
-      allMarkdownRemark {
+      allMarkdownRemark(sort: { frontmatter: { order: ASC } }) {
         edges {
           node {
             frontmatter {
@@ -28,13 +29,12 @@ const Portfolio = () => {
 
   return (
     <Layout>
-      <SEO title="Portfolio Page" />
       <section className="container portfolio-section">
         <div className="portfolio-section__content">
           <h1 className="title">Portfolio</h1>
           <span className="text-content">
-            From Web Components and UI/UX animations to 
-            React.JS, Redux, Vue.JS, and Node.JS. Check out 
+            From operations dashboards and API integrations to
+            React, Vue, Node.js, Python and Odoo. Check out
             my latest web software development portfolio projects.
           </span>
           <div className="portfolio-content">
@@ -43,16 +43,16 @@ const Portfolio = () => {
                 const { title, tags, image } = edge.node.frontmatter;
                 const { slug } = edge.node.fields;
                 const tagList = tags.split(', ');
-                const imageSrc = require(`../assets/img/${image}`);
+                const imageSrc = portfolioImage(image);
                 return (
-                  <Link to={`/portfolio/${slug}`}>
+                  <Link to={`/portfolio/${slug}`} key={slug}>
                     <div className="portfolio-content__boxes">
                       <div className="black-overlay"></div>
                       <div className="portfolio-content__header">{title}</div>
                       <img src={imageSrc} alt="" />
                       {tagList.map((tag: any): any => {
                         return (
-                          <div className="portfolio-content__tags">{tag}</div>
+                          <div className="portfolio-content__tags" key={tag}>{tag}</div>
                         )
                       })}
                       <div className="portfolio-content__tags">More...</div>
@@ -75,3 +75,5 @@ const Portfolio = () => {
 }
 
 export default Portfolio
+
+export const Head = () => <SEO title="Portfolio Page" />

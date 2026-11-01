@@ -50,6 +50,10 @@
   color: rgb(23, 221, 23);
   font-size: .9rem !important;
 }
+.failure {
+  color: #e22b2b;
+  font-size: .9rem !important;
+}
 
 .request-form {
   width: 100%;

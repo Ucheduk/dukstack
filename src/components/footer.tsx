@@ -12,11 +12,11 @@ const Footer = () => (
           <i className="zmdi zmdi-linkedin"></i>
         </a>
 
-        <a className="underline-from-left" target='blank' href="https://twitter.com/duk_stack">
+        <a className="underline-from-left" target='blank' href="https://twitter.com/dukstack">
           <i className="zmdi zmdi-twitter"></i>
         </a>
 
-        <a className="underline-from-left" target='blank' href="https://www.instagram.com/duk_stack">
+        <a className="underline-from-left" target='blank' href="https://www.instagram.com/dukstack">
           <i className="zmdi zmdi-instagram"></i>
         </a>
 

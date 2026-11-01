@@ -1,6 +1,6 @@
 import { Link } from "gatsby";
 import React, { useEffect, useState, Fragment} from "react";
-const logo = require('../assets/img/logo.png');
+import logo from '../assets/img/logo.png';
 
 const Header = () => {
 
@@ -75,7 +75,6 @@ const Header = () => {
                 <li><Link onClick={closeMobileNav} to="/" className="underline-from-left" activeClassName="active">Home</Link></li>
                 <li><Link onClick={closeMobileNav} to="/about" className="underline-from-left" activeClassName="active">About</Link></li>
                 <li><Link onClick={closeMobileNav} to="/portfolio" className="underline-from-left" activeClassName="active">Portfolio</Link></li>
-                <li><Link onClick={closeMobileNav} to="/blog" className="underline-from-left" activeClassName="active">My Blog</Link></li>
                 <li><Link onClick={closeMobileNav} to="/contact" className="underline-from-left" activeClassName="active">Contact</Link></li>
               </ul>
             </nav>
@@ -90,14 +89,13 @@ const Header = () => {
         <nav className="mobile-nav">
           <div className="avatar">
             <div className="avatar-img"></div>
-            <p>Uche Nwakwuo<br/>{'{duk_stack}'}</p>
+            <p>Uche Nwakwuo<br/>{'{dukstack}'}</p>
           </div>
 
           <ul>
             <li><Link onClick={closeMobileNav} to="/" className="underline-from-left" activeClassName="active">Home</Link></li>
             <li><Link onClick={closeMobileNav} to="/about" className="underline-from-left" activeClassName="active">About</Link></li>
             <li><Link onClick={closeMobileNav} to="/portfolio" className="underline-from-left" activeClassName="active">Portfolio</Link></li>
-            <li><Link onClick={closeMobileNav} to="/blog" className="underline-from-left" activeClassName="active">My Blog</Link></li>
             <li><Link onClick={closeMobileNav} to="/contact" className="underline-from-left" activeClassName="active">Contact</Link></li>
           </ul> 
         </nav>

@@ -4,6 +4,7 @@ import './single-portfolio.css'
 
 import Layout from "../components/layout";
 import SEO from "../components/seo";
+import portfolioImage from "../components/portfolioImage";
 
 interface PortfolioProps {
   data: any
@@ -25,6 +26,7 @@ export const query = graphql`
             tags
             link
             image
+            gallery
             desc
             content
             technologies
@@ -34,23 +36,30 @@ export const query = graphql`
   `
 
 const Portfolio = ({ data }: PortfolioProps) => {
-  const imageSrc = require(`../assets/img/${data.markdownRemark.frontmatter.image}`);
+  const { image, gallery } = data.markdownRemark.frontmatter;
+  const imageList = [image, ...(gallery ? gallery.split(', ') : [])];
   const technologiesList = data.markdownRemark.frontmatter.technologies.split(', ');
 
   return (
     <Layout>
-      <SEO title={`Portfolio - ${data.markdownRemark.frontmatter.title}`} />
       <section className="container single-portfolio-section">
         <div className="single-portfolio-section__content">
           <h1 className="title">{data.markdownRemark.frontmatter.title}</h1>
           <span className="text-content">
               {data.markdownRemark.frontmatter.desc}
           </span>
-          <a target="blank" href={data.markdownRemark.frontmatter.link} className="visit-btn"><i className="zmdi zmdi-arrow-right-top arrow"></i>Visit Website</a>
-          <div className="single-portfolio-content__boxes">
-            <div className="single-portfolio-content__header">{data.markdownRemark.frontmatter.title}</div>
-            <img src={imageSrc} alt="" />
-          </div>
+          {data.markdownRemark.frontmatter.link ?
+            <a target="blank" href={data.markdownRemark.frontmatter.link} className="visit-btn"><i className="zmdi zmdi-arrow-right-top arrow"></i>Visit Website</a>
+            : null
+          }
+          {imageList.map((imageName: string, index: number): any => {
+            return (
+              <div className="single-portfolio-content__boxes" key={imageName || index}>
+                <div className="single-portfolio-content__header">{data.markdownRemark.frontmatter.title}</div>
+                <img src={portfolioImage(imageName)} alt="" />
+              </div>
+            )
+          })}
 
           <h2 className="title-h2">About this project</h2>
           <span className="text-content">
@@ -62,7 +71,7 @@ const Portfolio = ({ data }: PortfolioProps) => {
             <ul>
               {technologiesList.map((technologies: any): any => {
                 return (
-                  <li>{technologies}</li>
+                  <li key={technologies}>{technologies}</li>
                 )
               })}
             </ul>
@@ -80,3 +89,10 @@ const Portfolio = ({ data }: PortfolioProps) => {
 }
 
 export default Portfolio
+
+export const Head = ({ data }: PortfolioProps) => (
+  <SEO
+    title={`Portfolio - ${data.markdownRemark.frontmatter.title}`}
+    description={data.markdownRemark.frontmatter.desc}
+  />
+)

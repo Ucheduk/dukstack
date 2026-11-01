@@ -1,20 +1,11 @@
 module.exports = {
   siteMetadata: {
-    title: `Dukstack - A Full Stack Developer`,
-    description: `Uche Nwakwuo {duk_stack} Portfolio Website. Made with 💜 for Gatsby`,
-    author: `Duk_Stack`,
+    title: `Dukstack - Fullstack Software Engineer`,
+    description: `Kingsley Uche Nwakwuo {dukstack} - Fullstack Software Engineer with 7+ years' experience building web applications, operational dashboards and backend systems across JavaScript, Python and PHP.`,
+    author: `Dukstack`,
+    siteUrl: `https://dukstack.netlify.app`,
   },
   plugins: [
-    `gatsby-plugin-react-helmet`,
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `images`,
-        path: `${__dirname}/src/images`,
-      },
-    },
-    `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
@@ -29,16 +20,6 @@ module.exports = {
       },
     },
     {
-      resolve: `gatsby-source-wordpress`,
-      options: {
-        baseUrl: `wp-api.dukinfotech.com.ng`,
-        protocol: `https`,
-        hostingWPCOM: false,
-        useACF: false,
-        verboseOutput: true
-      }
-    },
-    {
       resolve: `gatsby-source-filesystem`,
       options: {
         name: `src`,
@@ -46,9 +27,5 @@ module.exports = {
       }
     },
     `gatsby-transformer-remark`,
-    `gatsby-plugin-typescript`,
-    // this (optional) plugin enables Progressive Web App + Offline functionality
-    // To learn more, visit: https://gatsby.dev/offline
-    // `gatsby-plugin-offline`,
   ],
 }

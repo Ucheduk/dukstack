@@ -1,35 +1,22 @@
 {
-  "name": "gatsby-starter-default",
+  "name": "dukstack",
   "private": true,
-  "description": "A simple starter to get up and developing quickly with Gatsby",
+  "description": "Uche Nwakwuo {dukstack} portfolio website",
   "version": "0.1.0",
-  "author": "Kyle Mathews <mathews.kyle@gmail.com>",
+  "author": "Kingsley Uche Nwakwuo <dukweb4@gmail.com>",
   "dependencies": {
-    "@types/react": "^16.8.23",
-    "@types/react-dom": "^16.8.5",
-    "firebase": "^7.14.4",
-    "gatsby": "^2.13.42",
-    "gatsby-image": "^2.2.7",
-    "gatsby-paginate": "^1.1.1",
-    "gatsby-plugin-manifest": "^2.2.4",
-    "gatsby-plugin-offline": "^2.2.4",
-    "gatsby-plugin-react-helmet": "^3.1.2",
-    "gatsby-plugin-sharp": "^2.2.9",
-    "gatsby-plugin-typescript": "^2.1.2",
-    "gatsby-source-filesystem": "^2.1.9",
-    "gatsby-source-wordpress": "^3.1.39",
-    "gatsby-transformer-remark": "^2.6.14",
-    "gatsby-transformer-sharp": "^2.2.5",
-    "prop-types": "^15.7.2",
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6",
-    "react-helmet": "^5.2.1"
+    "gatsby": "^5.16.1",
+    "gatsby-plugin-manifest": "^5.16.0",
+    "gatsby-source-filesystem": "^5.16.0",
+    "gatsby-transformer-remark": "^6.16.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "resend": "^6.37.0"
   },
   "devDependencies": {
-    "@types/react-helmet": "^5.0.8",
-    "dotenv": "^8.0.0",
-    "env-cmd": "^9.0.3",
-    "prettier": "^1.18.2"
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "prettier": "^3.9.10"
   },
   "keywords": [
     "gatsby"
@@ -37,18 +24,17 @@
   "license": "MIT",
   "scripts": {
     "build": "gatsby build",
-    "playground": "env GATSBY_GRAPHQL_IDE=playground",
-    "develop": "env GATSBY_GRAPHQL_IDE=playground gatsby develop",
-    "format": "prettier --write src/**/*.{js,jsx}",
+    "develop": "gatsby develop",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx}\"",
     "start": "npm run develop",
     "serve": "gatsby serve",
+    "clean": "gatsby clean",
     "test": "echo \"Write tests! -> https://gatsby.dev/unit-testing\""
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gatsbyjs/gatsby-starter-default"
+  "engines": {
+    "node": ">=18.0.0"
   },
-  "bugs": {
-    "url": "https://github.com/gatsbyjs/gatsby/issues"
+  "overrides": {
+    "sharp": "^0.35.5"
   }
 }

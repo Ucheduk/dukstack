@@ -6,19 +6,18 @@ import SEO from "../components/seo"
 import NameInput from "../components/Form/nameInput";
 import TextInput from "../components/Form/textInput";
 import EmailInput from "../components/Form/emailInput";
-import validate from "../components/Form//validator";
-import getFirebase from "../components/firebase";
+import validate from "../components/Form/validator";
 import './contact.css'
 
 
 interface MyProps {}
 
 interface MyState {
-  database: any,
-  messagesRef: any,
   trySubmit: boolean;
   formIsValid: boolean;
+  sending: boolean;
   showConfirmMsg: boolean;
+  showErrorMsg: boolean;
   formControls: {[key: string]: any}
 }
 
@@ -26,11 +25,11 @@ class Contact extends React.Component<MyProps, MyState> {
 
   static defaultProps: MyProps = {}
   state: Readonly<MyState> = {
-    database: null,
-    messagesRef: null,
     trySubmit: false,
     formIsValid: false,
+    sending: false,
     showConfirmMsg: false,
+    showErrorMsg: false,
 
     formControls: {
       email: {
@@ -69,33 +68,17 @@ class Contact extends React.Component<MyProps, MyState> {
 
   componentDidMount() {
     window.scrollTo(0, 0);
-    const lazyApp = import('@firebase/app')
-    const lazyDatabase = import('@firebase/database')
-
-    Promise.all([lazyApp, lazyDatabase]).then(([firebase]) => {
-      const database = getFirebase(firebase).database()
-      
-      //Reference messeges collection
-      const messagesRef = getFirebase(firebase).database().ref('messeges');
-
-      this.setState({
-        database,
-        messagesRef
-      })
-    })
   }
 
   triggerConfirmMsg = () => {
-    if (this.state.formIsValid) {
+    this.setState({
+      showConfirmMsg: true
+    })
+    setTimeout(() => {
       this.setState({
-        showConfirmMsg: true
+        showConfirmMsg: false
       })
-      setTimeout(() => {
-        this.setState({
-          showConfirmMsg: false
-        })
-      }, 5000);
-    }
+    }, 5000);
   }
 
   changeHandler = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
@@ -103,8 +86,6 @@ class Contact extends React.Component<MyProps, MyState> {
     const name = event.currentTarget.name;
     const value = event.currentTarget.value;
 
-    console.log(name)
-  
     const updatedControls = {
       ...this.state.formControls
     };
@@ -132,7 +113,7 @@ class Contact extends React.Component<MyProps, MyState> {
   
   }
 
-  handleSubmit = (event: React.FormEvent<HTMLFormElement>): void => {
+  handleSubmit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     const data = {
       name: this.state.formControls.name.value,
@@ -140,10 +121,22 @@ class Contact extends React.Component<MyProps, MyState> {
       message: this.state.formControls.textarea.value,
     }
 
-    // Sending Message to Firebase
-    let newmessagesRef = this.state.messagesRef.push();
-    newmessagesRef.set(data)
-    // console.log(data)
+    this.setState({ sending: true, showErrorMsg: false, showConfirmMsg: false });
+
+    // Sending Message through the Resend function in src/api/contact.ts
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+    } catch (error) {
+      console.error(error);
+      // Keep the visitor's message in the form so they can try again
+      this.setState({ sending: false, showErrorMsg: true });
+      return;
+    }
 
     const updatedControls = {
       ...this.state.formControls
@@ -161,6 +154,7 @@ class Contact extends React.Component<MyProps, MyState> {
     this.setState({
       formControls: updatedControls,
       formIsValid: formIsValid,
+      sending: false,
       trySubmit: true
     });
     this.triggerConfirmMsg()
@@ -170,7 +164,6 @@ class Contact extends React.Component<MyProps, MyState> {
 
     return (
       <Layout>
-        <SEO title="Contact - Uche Nwakwuo {Duk_Stack}" />
         <section className="container home-section">
           <div className="img-wrapper">
               <div className="duk-image"></div>
@@ -208,8 +201,9 @@ class Contact extends React.Component<MyProps, MyState> {
                   />
 
                   <div className="form-group">
-                      <input type="submit" name="send" id="send" disabled={!this.state.formIsValid} value="Send"/>
+                      <input type="submit" name="send" id="send" disabled={!this.state.formIsValid || this.state.sending} value={this.state.sending ? "Sending..." : "Send"}/>
                       {this.state.showConfirmMsg? (<p className="success">Thanks for your Message!<br/>I will get in touch with you soon.</p>) : null}
+                      {this.state.showErrorMsg? (<p className="failure">Sorry, your message could not be sent.<br/>Please try again.</p>) : null}
                   </div>
                 </form>
               </span>
@@ -226,3 +220,5 @@ class Contact extends React.Component<MyProps, MyState> {
 }
 
 export default Contact
+
+export const Head = () => <SEO title="Contact - Uche Nwakwuo {Dukstack}" />

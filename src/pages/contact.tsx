@@ -18,6 +18,7 @@ interface MyState {
   sending: boolean;
   showConfirmMsg: boolean;
   errorMsg: string;
+  turnstileVerified: boolean;
   formControls: {[key: string]: any}
 }
 
@@ -30,6 +31,7 @@ class Contact extends React.Component<MyProps, MyState> {
     sending: false,
     showConfirmMsg: false,
     errorMsg: '',
+    turnstileVerified: false,
 
     formControls: {
       email: {
@@ -82,6 +84,11 @@ class Contact extends React.Component<MyProps, MyState> {
     if (this.turnstileWidgetId !== null) (window as any).turnstile.remove(this.turnstileWidgetId);
   }
 
+  clearTurnstileToken = () => {
+    this.turnstileToken = '';
+    this.setState({ turnstileVerified: false });
+  }
+
   // Cloudflare Turnstile is only used when a site key is configured
   loadTurnstile = () => {
     const sitekey = process.env.GATSBY_TURNSTILE_SITE_KEY;
@@ -91,8 +98,12 @@ class Contact extends React.Component<MyProps, MyState> {
       if (!this.turnstileBox.current) return;
       this.turnstileWidgetId = (window as any).turnstile.render(this.turnstileBox.current, {
         sitekey,
-        callback: (token: string) => { this.turnstileToken = token },
-        'expired-callback': () => { this.turnstileToken = '' },
+        callback: (token: string) => {
+          this.turnstileToken = token;
+          this.setState({ turnstileVerified: true });
+        },
+        'expired-callback': this.clearTurnstileToken,
+        'error-callback': this.clearTurnstileToken,
       });
     }
 
@@ -107,7 +118,7 @@ class Contact extends React.Component<MyProps, MyState> {
 
   // Turnstile tokens are single use, so each attempt needs a new one
   resetTurnstile = () => {
-    this.turnstileToken = '';
+    this.clearTurnstileToken();
     if (this.turnstileWidgetId !== null) (window as any).turnstile.reset(this.turnstileWidgetId);
   }
 
@@ -261,7 +272,7 @@ class Contact extends React.Component<MyProps, MyState> {
                   <div ref={this.turnstileBox}></div>
 
                   <div className="form-group">
-                      <input type="submit" name="send" id="send" disabled={!this.state.formIsValid || this.state.sending} value={this.state.sending ? "Sending..." : "Send"}/>
+                      <input type="submit" name="send" id="send" disabled={!this.state.formIsValid || this.state.sending || (Boolean(process.env.GATSBY_TURNSTILE_SITE_KEY) && !this.state.turnstileVerified)} value={this.state.sending ? "Sending..." : "Send"}/>
                       {this.state.showConfirmMsg? (<p className="success">Thanks for your Message!<br/>I will get in touch with you soon.</p>) : null}
                       {this.state.errorMsg? (<p className="failure">{this.state.errorMsg}</p>) : null}
                   </div>

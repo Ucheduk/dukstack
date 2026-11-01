@@ -9,6 +9,7 @@ const RATE_LIMIT = 5
 const RATE_WINDOW_MS = 60 * 60 * 1000
 const LINK_PATTERN = /https?:\/\/|www\./gi
 
+// Counts sent emails only, so failed attempts can't lock a visitor out.
 // Kept in memory, so the limit is per running function instance rather than global
 const attempts = new Map<string, number[]>()
 
@@ -17,20 +18,22 @@ const isRateLimited = (ip: string) => {
   for (const [key, times] of attempts) {
     if (times.every(time => now - time >= RATE_WINDOW_MS)) attempts.delete(key)
   }
-  const recent = (attempts.get(ip) || []).filter(time => now - time < RATE_WINDOW_MS)
-  recent.push(now)
-  attempts.set(ip, recent)
-  return recent.length > RATE_LIMIT
+  return (attempts.get(ip) || []).filter(time => now - time < RATE_WINDOW_MS).length >= RATE_LIMIT
 }
 
-const passesTurnstile = async (token: string, ip: string) => {
+const recordSend = (ip: string) => {
+  attempts.set(ip, [...(attempts.get(ip) || []), Date.now()])
+}
+
+const passesTurnstile = async (token: string) => {
   try {
     const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ secret: process.env.TURNSTILE_SECRET_KEY, response: token, remoteip: ip }),
+      body: JSON.stringify({ secret: process.env.TURNSTILE_SECRET_KEY, response: token }),
     })
     const result = await response.json()
+    if (!result.success) console.error("Turnstile rejected:", result["error-codes"], `token present: ${Boolean(token)}`)
     return result.success === true
   } catch (error) {
     console.error("Turnstile error:", error)
@@ -68,7 +71,7 @@ export default async function handler(req: any, res: any) {
     return res.status(429).json({ error: "Too many messages. Please try again later." })
   }
 
-  if (process.env.TURNSTILE_SECRET_KEY && !(await passesTurnstile(clean(req.body?.turnstileToken), ip))) {
+  if (process.env.TURNSTILE_SECRET_KEY && !(await passesTurnstile(clean(req.body?.turnstileToken)))) {
     return res.status(400).json({ error: "Please complete the verification and try again." })
   }
 
@@ -92,6 +95,8 @@ export default async function handler(req: any, res: any) {
     console.error("Resend error:", error.message)
     return res.status(502).json({ error: "Message could not be sent" })
   }
+
+  recordSend(ip)
 
   return res.status(200).json({ ok: true })
 }

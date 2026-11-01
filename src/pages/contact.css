@@ -50,6 +50,12 @@
   color: rgb(23, 221, 23);
   font-size: .9rem !important;
 }
+.contact-fax {
+  position: absolute;
+  left: -9999px;
+  height: 1px;
+  overflow: hidden;
+}
 .failure {
   color: #e22b2b;
   font-size: .9rem !important;

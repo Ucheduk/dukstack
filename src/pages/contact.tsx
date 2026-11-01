@@ -17,7 +17,7 @@ interface MyState {
   formIsValid: boolean;
   sending: boolean;
   showConfirmMsg: boolean;
-  showErrorMsg: boolean;
+  errorMsg: string;
   formControls: {[key: string]: any}
 }
 
@@ -29,7 +29,7 @@ class Contact extends React.Component<MyProps, MyState> {
     formIsValid: false,
     sending: false,
     showConfirmMsg: false,
-    showErrorMsg: false,
+    errorMsg: '',
 
     formControls: {
       email: {
@@ -66,8 +66,49 @@ class Contact extends React.Component<MyProps, MyState> {
     }
   }
 
+  loadedAt = 0
+  honeypot = React.createRef<HTMLInputElement>()
+  turnstileBox = React.createRef<HTMLDivElement>()
+  turnstileWidgetId: string | null = null
+  turnstileToken = ''
+
   componentDidMount() {
     window.scrollTo(0, 0);
+    this.loadedAt = Date.now();
+    this.loadTurnstile();
+  }
+
+  componentWillUnmount() {
+    if (this.turnstileWidgetId !== null) (window as any).turnstile.remove(this.turnstileWidgetId);
+  }
+
+  // Cloudflare Turnstile is only used when a site key is configured
+  loadTurnstile = () => {
+    const sitekey = process.env.GATSBY_TURNSTILE_SITE_KEY;
+    if (!sitekey) return;
+
+    const renderWidget = () => {
+      if (!this.turnstileBox.current) return;
+      this.turnstileWidgetId = (window as any).turnstile.render(this.turnstileBox.current, {
+        sitekey,
+        callback: (token: string) => { this.turnstileToken = token },
+        'expired-callback': () => { this.turnstileToken = '' },
+      });
+    }
+
+    if ((window as any).turnstile) return renderWidget();
+
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.onload = renderWidget;
+    document.head.appendChild(script);
+  }
+
+  // Turnstile tokens are single use, so each attempt needs a new one
+  resetTurnstile = () => {
+    this.turnstileToken = '';
+    if (this.turnstileWidgetId !== null) (window as any).turnstile.reset(this.turnstileWidgetId);
   }
 
   triggerConfirmMsg = () => {
@@ -119,9 +160,12 @@ class Contact extends React.Component<MyProps, MyState> {
       name: this.state.formControls.name.value,
       email: this.state.formControls.email.value,
       message: this.state.formControls.textarea.value,
+      contact_fax: this.honeypot.current?.value,
+      elapsedMs: Date.now() - this.loadedAt,
+      turnstileToken: this.turnstileToken,
     }
 
-    this.setState({ sending: true, showErrorMsg: false, showConfirmMsg: false });
+    this.setState({ sending: true, errorMsg: '', showConfirmMsg: false });
 
     // Sending Message through the Resend function in src/api/contact.ts
     try {
@@ -130,13 +174,21 @@ class Contact extends React.Component<MyProps, MyState> {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        // Server errors stay generic, 400 and 429 explain what the visitor can do
+        throw new Error(response.status < 500 && result.error ? result.error : 'Sorry, your message could not be sent. Please try again.');
+      }
     } catch (error) {
       console.error(error);
       // Keep the visitor's message in the form so they can try again
-      this.setState({ sending: false, showErrorMsg: true });
+      this.resetTurnstile();
+      const errorMsg = error instanceof TypeError ? 'Sorry, your message could not be sent. Please try again.' : (error as Error).message;
+      this.setState({ sending: false, errorMsg });
       return;
     }
+
+    this.resetTurnstile();
 
     const updatedControls = {
       ...this.state.formControls
@@ -200,10 +252,18 @@ class Contact extends React.Component<MyProps, MyState> {
                     valid={this.state.formControls.textarea.valid}
                   />
 
+                  {/* Hidden from people, bots that fill it in are ignored by src/api/contact.ts */}
+                  <div className="contact-fax" aria-hidden="true">
+                    <label htmlFor="contact_fax">Leave this field empty</label>
+                    <input type="text" name="contact_fax" id="contact_fax" ref={this.honeypot} tabIndex={-1} autoComplete="off" />
+                  </div>
+
+                  <div ref={this.turnstileBox}></div>
+
                   <div className="form-group">
                       <input type="submit" name="send" id="send" disabled={!this.state.formIsValid || this.state.sending} value={this.state.sending ? "Sending..." : "Send"}/>
                       {this.state.showConfirmMsg? (<p className="success">Thanks for your Message!<br/>I will get in touch with you soon.</p>) : null}
-                      {this.state.showErrorMsg? (<p className="failure">Sorry, your message could not be sent.<br/>Please try again.</p>) : null}
+                      {this.state.errorMsg? (<p className="failure">{this.state.errorMsg}</p>) : null}
                   </div>
                 </form>
               </span>
